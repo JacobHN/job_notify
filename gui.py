@@ -3,41 +3,54 @@ import webbrowser
 import db
 import threading as th
 import companies.supermicro
-import time
 
 
-items = db.getList()
-sm = companies.supermicro.supermicro()
+class gui(Tk):
+    """GUI representation of the database showing all jobs posting collected into a listbox"""
 
-win = Tk()
-win.geometry("500x500")
-
-listbox = Listbox(win)
-
-def repopulate(items):
-    print("repopulate")
-    thisdict = {}
-    listbox.delete(0, END)
-    for  idx, item in enumerate(items):
-        listbox.insert(idx, item[0] + " " + str(item[1]))
-        thisdict[item[0] + " " + str(item[1])] = item[3]
-        # listbox.insert(idx, item)
-    listbox.pack()
-    def callback(event):
-        webbrowser.open_new_tab(thisdict.get(listbox.get(listbox.curselection())))
-    listbox.bind("<<ListboxSelect>>", callback)
+    def __init__(self, master=None):
+        self.root = master
+        self.init_page()
 
 
-def threading():
-    t1=th.Thread(target=work)
-    t1.start()
+    def init_page(self):
+        """intializes all page's features such as listbox"""
+        self.items = db.getList()
+        self.sm = companies.supermicro.supermicro()
+        self.companies = {self.sm}
+        self.root.geometry("500x500")
+        self.root.listbox = Listbox(self.root)
+        self.threading()
+        self.repopulate(self.items)
 
-def work():
-    if sm.run():
-        items = db.getList()
-        repopulate(items)
-    win.after(5000, work)
+    def repopulate(self, items):
+        """destroys and then populates items from database into listbox"""
+        print("repopulate")
+        thisdict = {}
+        self.root.listbox.delete(0, END)
+        for  idx, item in enumerate(items):
+            self.root.listbox.insert(idx, item[0] + " " + str(item[1]))
+            thisdict[item[0] + " " + str(item[1])] = item[3]
+        self.root.listbox.pack()
+        def callback(event):
+            webbrowser.open_new_tab(thisdict.get(self.root.listbox.get(self.root.listbox.curselection())))
+        self.root.listbox.bind("<<ListboxSelect>>", callback)
 
-threading()
-repopulate(items)
-win.mainloop()
+    def threading(self):
+        """initiates worker thread"""
+        t1=th.Thread(target=self.work)
+        t1.start()
+
+    def work(self):
+        """background thread that checks for whether a posting has been added"""
+        for company in self.companies:
+            if company.run():
+                self.items = db.getList()  
+        self.repopulate(self.items)
+        self.root.after(5000, self.work)
+
+    def exit(self):
+        """destroys window"""
+        self.destroy()
+
+
