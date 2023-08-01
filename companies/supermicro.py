@@ -6,8 +6,10 @@ import time
 import db
 
 class supermicro:
+    """"""
     company = 'SuperMicro'
     def run(self):
+        """scrape supermicro software engineering job board for new job postings"""
         flag = False
         headers = {
             'User-Agent': 'Mozilla/5.0'
@@ -27,12 +29,11 @@ class supermicro:
                 print("new job")
                 db.addItem(self.company, id, title, hlink)
                 flag = True
+                # if flag:
+                #     notification = Notify()
+                #     notification.title = "New job posted"
+                #     notification.message = "SuperMicro"
+                #     notification.audio = "sounds/uwu.wav"
+                #     notification.send()
             elif db.exist(self.company, id):
                 return flag
-        # if flag:
-        #     notification = Notify()
-        #     notification.title = "tallgeese is here bitch"
-        #     notification.message = "check the site ye ass"
-        #     notification.audio = "sounds/uwu.wav"
-        #     notification.send()
-        #  time.sleep(30)
